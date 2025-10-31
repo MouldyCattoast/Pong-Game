@@ -114,7 +114,7 @@ def create_ball(radius, bounciness, mass, moment):
     d_range = range(300, 330)
     angle_ranges = list(itertools.chain(a_range, b_range, c_range, d_range))
     angle_deg = random.choice(angle_ranges)
-    print(angle_deg)
+    #print(angle_deg)
     angle = math.radians(angle_deg)
     ball_body = pymunk.Body(mass, moment, body_type=pymunk.Body.DYNAMIC)
     ball_body.position = (300, 300)
@@ -225,7 +225,7 @@ def detect_collision(a):
 
 
 def begin(a, s, data):
-    global streak_count
+    global streak_count, paddle_a_max_spd, paddle_b_max_spd, paddle_l_scalefactor_a, paddle_l_scalefactor_b
     collision_type = detect_collision(a)
 
     if collision_type == "l_wall":
@@ -242,13 +242,72 @@ def begin(a, s, data):
             pygame.mixer.Sound.play(streak_broken_sound)
         else:
             pygame.mixer.Sound.play(miss_sound)
+
+    
         
          
     if collision_type == "l_wall":
+        
+
         data["player_b_score"] += score_increment
+        if (bar_bg_w/(bar_bg_w-bar_var_w))>(bar_bg_w/bar_midpoint): #if bar above 50%(player a winning)
+            paddle_b_max_spd = default_max_pad_spd - ((bar_var_w - bar_midpoint)/pad_spd_to_bg_w_ratio)
+            space.remove(paddle_shapes["a"], paddle_shapes["b"])
+            paddle_l_scalefactor_a = min(max_paddle_l_scalefactor, default_paddle_l_scalefactor+((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((1-quit_threshold)-bar_midpoint))))
+            paddle_l_scalefactor_b = max(min_paddle_l_scalefactor, default_paddle_l_scalefactor-((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((1-quit_threshold)-bar_midpoint))))
+            paddle_shapes["a"] = pymunk.Poly(paddle_a_body, paddle_a, None, 0)
+            paddle_shapes["b"] = pymunk.Poly(paddle_b_body, paddle_b, None, 0)
+            paddle_shapes["a"].elasticity = 1.06
+            paddle_shapes["a"].color = blue
+            paddle_shapes["b"].elasticity = 1.06
+            paddle_shapes["b"].color = blue
+            space.add(paddle_shapes["a"], paddle_shapes["b"])
+
+        if (bar_bg_w/(bar_bg_w-bar_var_w))<(bar_bg_w/bar_midpoint): #if bar below 50%(player b winning)
+            paddle_a_max_spd = default_max_pad_spd - ((bar_midpoint - bar_var_w)/pad_spd_to_bg_w_ratio)
+            space.remove(paddle_shapes["a"], paddle_shapes["b"])
+            paddle_l_scalefactor_b = min(max_paddle_l_scalefactor, default_paddle_l_scalefactor+((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
+            paddle_l_scalefactor_a = max(min_paddle_l_scalefactor, default_paddle_l_scalefactor-((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
+            paddle_shapes["a"] = pymunk.Poly(paddle_a_body, paddle_a, None, 0)
+            paddle_shapes["b"] = pymunk.Poly(paddle_b_body, paddle_b, None, 0)
+            paddle_shapes["a"].elasticity = 1.06
+            paddle_shapes["a"].color = blue
+            paddle_shapes["b"].elasticity = 1.06
+            paddle_shapes["b"].color = blue
+            space.add(paddle_shapes["a"], paddle_shapes["b"])
+        print("a = ", paddle_l_scalefactor_a)
+        print("b = ", paddle_l_scalefactor_b)
+            
 
     if collision_type == "r_wall":
         data["player_a_score"] += score_increment
+        if (bar_var_w>bar_midpoint): #if bar above 50%(player a winning)
+            paddle_b_max_spd = default_max_pad_spd - ((bar_var_w - bar_midpoint)/pad_spd_to_bg_w_ratio)
+            space.remove(paddle_shapes["a"], paddle_shapes["b"])
+            paddle_l_scalefactor_a = min(max_paddle_l_scalefactor, default_paddle_l_scalefactor+((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((1-quit_threshold)-bar_midpoint))))
+            paddle_l_scalefactor_b = max(min_paddle_l_scalefactor, default_paddle_l_scalefactor-((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((1-quit_threshold)-bar_midpoint))))
+            paddle_shapes["a"] = pymunk.Poly(paddle_a_body, paddle_a, None, 0)
+            paddle_shapes["b"] = pymunk.Poly(paddle_b_body, paddle_b, None, 0)
+            paddle_shapes["a"].elasticity = 1.06
+            paddle_shapes["a"].color = blue
+            paddle_shapes["b"].elasticity = 1.06
+            paddle_shapes["b"].color = blue
+            space.add(paddle_shapes["a"], paddle_shapes["b"])
+
+        if (bar_var_w<bar_midpoint): #if bar below 50%(player b winning)
+            paddle_a_max_spd = default_max_pad_spd - ((bar_midpoint - bar_var_w)/pad_spd_to_bg_w_ratio)
+            space.remove(paddle_shapes["a"], paddle_shapes["b"])
+            paddle_l_scalefactor_b = min(max_paddle_l_scalefactor, default_paddle_l_scalefactor+((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
+            paddle_l_scalefactor_a = max(min_paddle_l_scalefactor, default_paddle_l_scalefactor-((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
+            paddle_shapes["a"] = pymunk.Poly(paddle_a_body, paddle_a, None, 0)
+            paddle_shapes["b"] = pymunk.Poly(paddle_b_body, paddle_b, None, 0)
+            paddle_shapes["a"].elasticity = 1.06
+            paddle_shapes["a"].color = blue
+            paddle_shapes["b"].elasticity = 1.06
+            paddle_shapes["b"].color = blue
+            space.add(paddle_shapes["a"], paddle_shapes["b"])
+        print("a = ", paddle_l_scalefactor_a)
+        print("b = ", paddle_l_scalefactor_b)
 
     if collision_type == "paddle_a_top":
         data["paddle_a_top_stop"] = True
@@ -342,7 +401,7 @@ Up_press = False
 running = True
 while running:
 
-    print(paddle_shapes["a"])
+    
     
     #bar_var = create_score_bar(player_a_score_val, player_b_score_val)
     #create_score_bar()
@@ -354,9 +413,8 @@ while running:
     #Score Bar Shift
     if (player_a_score_val >= 1) or (player_b_score_val >= 1):
         bar_var_w = ((bar_bg_w/(player_a_score_val+player_b_score_val))*player_a_score_val)
-
+    """
     #Score Disparity Disadvantage
-
     if (bar_bg_w/(bar_bg_w-bar_var_w))>(bar_bg_w/bar_midpoint): #if bar above 50%(player a winning)
         paddle_b_max_spd = default_max_pad_spd - ((bar_var_w - bar_midpoint)/pad_spd_to_bg_w_ratio)
         space.remove(paddle_shapes["a"], paddle_shapes["b"])
@@ -382,7 +440,8 @@ while running:
         paddle_shapes["a"].color = blue
         paddle_shapes["b"].elasticity = 1.06
         paddle_shapes["b"].color = blue
-        space.add(paddle_shapes["a"], paddle_shapes["b"])
+        space.add(paddle_shapes["a"], paddle_shapes["b"])"""
+        
 
 
     bar_var = pygame.Rect(100, 20 , bar_var_w, 20)
