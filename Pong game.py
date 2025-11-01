@@ -7,6 +7,10 @@ import itertools
 import os
 import sys
 import pymunk.pygame_util
+import paddle
+
+
+
 
 pygame.init()
 pygame.font.init()
@@ -33,8 +37,8 @@ font = pygame.font.Font(font_path, 24)
 FPS = 60
 gamespeed = 1/FPS
 default_max_pad_spd = 22
-paddle_a_max_spd = default_max_pad_spd
-paddle_b_max_spd = default_max_pad_spd
+paddle.paddle_a_max_spd = default_max_pad_spd
+paddle.paddle_b_max_spd = default_max_pad_spd
 
 # boundaries
 left_wall = 0
@@ -56,6 +60,7 @@ bottomright = (right_wall, bottom_wall)
 space = pymunk.Space()
 space.gravity = (0, 0)
 draw_options = pymunk.pygame_util.DrawOptions(screen)
+paddle.add_paddle_to_space(space)
 
 # walls
 wall_elasticity = 0.96
@@ -73,37 +78,6 @@ walls = [
 for wall in walls:
     wall.elasticity = wall_elasticity
 space.add(*walls)
-
-# paddle
-default_paddle_l_scalefactor = 30
-paddle_size_variation_percent = 50
-max_paddle_l_scalefactor = default_paddle_l_scalefactor * (1+(paddle_size_variation_percent/100))
-min_paddle_l_scalefactor = default_paddle_l_scalefactor * (1-(paddle_size_variation_percent/100))
-paddle_l_scalefactor_a = default_paddle_l_scalefactor
-paddle_l_scalefactor_b = default_paddle_l_scalefactor
-paddle_w_scalefactor = 5
-
-paddle_a = [
-        Vec2d(left_wall, 0),  # topleft
-        Vec2d(left_wall + paddle_w_scalefactor * 3, 0),  # topright
-        Vec2d(left_wall, bottom_wall * 0.01 * paddle_l_scalefactor_a),  # bottomleft
-        Vec2d(
-            left_wall + paddle_w_scalefactor * 3,
-            bottom_wall * 0.01 * paddle_l_scalefactor_a,
-        ),  # bottomright
-]
-
-
-paddle_b = [
-    Vec2d(right_wall - paddle_w_scalefactor * 3, 0),  # topleft
-    Vec2d(right_wall, 0),  # topright
-    Vec2d(
-        right_wall - paddle_w_scalefactor * 3,
-        bottom_wall * 0.01 * paddle_l_scalefactor_b,
-    ),  # bottomleft
-    Vec2d(right_wall, bottom_wall * 0.01 * paddle_l_scalefactor_b),  # bottomright
-]
-
 
 def create_ball(radius, bounciness, mass, moment):
     ball_spd = random.randint(15, 30)
@@ -126,30 +100,12 @@ def create_ball(radius, bounciness, mass, moment):
     
     return ball_body, ball
 
-    
-
-
-def create_paddle(paddle: list):
-    paddle_body = pymunk.Body(1, 1, body_type=pymunk.Body.KINEMATIC)
-    paddle_shape = pymunk.Poly(paddle_body, paddle, None, 0)
-    paddle_shape.elasticity = 1.06
-    paddle_shape.color = blue
-    space.add(paddle_body, paddle_shape)
-
-    return paddle_body, paddle_shape
-
-
-
-paddle_shapes = {}
-
 
 
 # Objects
 ball_body, ball = create_ball(20, 1, 1, 10)
 ball_move_x = ball_body.velocity[0]
 ball_move_y = ball_body.velocity[1]
-paddle_a_body, paddle_shapes["a"] = create_paddle(paddle_a)
-paddle_b_body, paddle_shapes["b"] = create_paddle(paddle_b)
 
 # Audio
 miss_sound = pygame.mixer.Sound("Miss.wav")
@@ -175,10 +131,10 @@ collision_handler = space.add_default_collision_handler()
 collision_handler.data["player_a_score"] = 10
 collision_handler.data["player_b_score"] = 10
 
-collision_handler.data["paddle_a_top_stop"] = False
-collision_handler.data["paddle_a_bottom_stop"] = False
-collision_handler.data["paddle_b_top_stop"] = False
-collision_handler.data["paddle_b_bottom_stop"] = False
+collision_handler.data["paddle.paddle_a_top_stop"] = False
+collision_handler.data["paddle.paddle_a_bottom_stop"] = False
+collision_handler.data["paddle.paddle_b_top_stop"] = False
+collision_handler.data["paddle.paddle_b_bottom_stop"] = False
 
 
 
@@ -190,24 +146,24 @@ def detect_collision(a):
     top_wall_collision = top in a.shapes
     bottom_wall_collision = bottom in a.shapes
 
-    paddle_a_collision = paddle_shapes["a"] in a.shapes
-    paddle_b_collision = paddle_shapes["b"] in a.shapes
+    paddle.paddle_a_collision = paddle.paddle_shapes["a"] in a.shapes
+    paddle.paddle_b_collision = paddle.paddle_shapes["b"] in a.shapes
 
-    #print(paddle_shapes["a"])
+    #print(paddle.paddle_shapes["a"])
 
     ball_collision = ball in a.shapes
 
-    if (paddle_a_collision and top_wall_collision) :
-        return "paddle_a_top"
+    if (paddle.paddle_a_collision and top_wall_collision) :
+        return "paddle.paddle_a_top"
 
-    if(paddle_a_collision and bottom_wall_collision):
-        return "paddle_a_bottom"
+    if(paddle.paddle_a_collision and bottom_wall_collision):
+        return "paddle.paddle_a_bottom"
 
-    if (paddle_b_collision and top_wall_collision):
-        return "paddle_b_top"
+    if (paddle.paddle_b_collision and top_wall_collision):
+        return "paddle.paddle_b_top"
     
-    if(paddle_b_collision and bottom_wall_collision):
-        return "paddle_b_bottom"
+    if(paddle.paddle_b_collision and bottom_wall_collision):
+        return "paddle.paddle_b_bottom"
     
     if(left_wall_collision and ball_collision):
         return "l_wall"
@@ -215,16 +171,16 @@ def detect_collision(a):
     if(right_wall_collision and ball_collision):
         return "r_wall"
     
-    if(paddle_a_collision and ball_collision):
+    if(paddle.paddle_a_collision and ball_collision):
         return "ball_and_a"
     
-    if(paddle_b_collision and ball_collision):
+    if(paddle.paddle_b_collision and ball_collision):
         return "ball_and_b"
     
 
 
 def begin(a, s, data):
-    global streak_count, paddle_a_max_spd, paddle_b_max_spd, paddle_l_scalefactor_a, paddle_l_scalefactor_b
+    global streak_count
     collision_type = detect_collision(a)
 
     if collision_type == "l_wall":
@@ -250,75 +206,75 @@ def begin(a, s, data):
 
         data["player_b_score"] += score_increment
         if bar_var_w>bar_midpoint: #if bar above 50%(player a winning)
-            paddle_b_max_spd = default_max_pad_spd - ((bar_var_w - bar_midpoint)/pad_spd_to_bg_w_ratio)
-            space.remove(paddle_shapes["a"], paddle_shapes["b"])
-            paddle_l_scalefactor_a = min(max_paddle_l_scalefactor, default_paddle_l_scalefactor+((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((bar_bg_w-quit_threshold)-bar_midpoint))))
-            paddle_l_scalefactor_b = max(min_paddle_l_scalefactor, default_paddle_l_scalefactor-((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((bar_bg_w-quit_threshold)-bar_midpoint))))
-            paddle_shapes["a"] = pymunk.Poly(paddle_a_body, paddle_a, None, 0)
-            paddle_shapes["b"] = pymunk.Poly(paddle_b_body, paddle_b, None, 0)
-            paddle_shapes["a"].elasticity = 1.06
-            paddle_shapes["a"].color = blue
-            paddle_shapes["b"].elasticity = 1.06
-            paddle_shapes["b"].color = blue
-            space.add(paddle_shapes["a"], paddle_shapes["b"])
+            paddle.paddle_b_max_spd = default_max_pad_spd - ((bar_var_w - bar_midpoint)/pad_spd_to_bg_w_ratio)
+            space.remove(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
+            paddle.paddle_l_scalefactor_a = min(paddle.max_paddle_l_scalefactor, paddle.default_paddle_l_scalefactor+((paddle.max_paddle_l_scalefactor-paddle.default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((bar_bg_w-quit_threshold)-bar_midpoint))))
+            paddle.paddle_l_scalefactor_b = max(paddle.min_paddle_l_scalefactor, paddle.default_paddle_l_scalefactor-((paddle.max_paddle_l_scalefactor-paddle.default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((bar_bg_w-quit_threshold)-bar_midpoint))))
+            paddle.paddle_shapes["a"] = pymunk.Poly(paddle.paddle_a_body, paddle.paddle_a, None, 0)
+            paddle.paddle_shapes["b"] = pymunk.Poly(paddle.paddle_b_body, paddle.paddle_b, None, 0)
+            paddle.paddle_shapes["a"].elasticity = 1.06
+            paddle.paddle_shapes["a"].color = blue
+            paddle.paddle_shapes["b"].elasticity = 1.06
+            paddle.paddle_shapes["b"].color = blue
+            space.add(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
 
         if  bar_var_w<bar_midpoint: #if bar below 50%(player b winning)
-            paddle_a_max_spd = default_max_pad_spd - ((bar_midpoint - bar_var_w)/pad_spd_to_bg_w_ratio)
-            space.remove(paddle_shapes["a"], paddle_shapes["b"])
-            paddle_l_scalefactor_b = min(max_paddle_l_scalefactor, default_paddle_l_scalefactor+((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
-            paddle_l_scalefactor_a = max(min_paddle_l_scalefactor, default_paddle_l_scalefactor-((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
-            paddle_shapes["a"] = pymunk.Poly(paddle_a_body, paddle_a, None, 0)
-            paddle_shapes["b"] = pymunk.Poly(paddle_b_body, paddle_b, None, 0)
-            paddle_shapes["a"].elasticity = 1.06
-            paddle_shapes["a"].color = blue
-            paddle_shapes["b"].elasticity = 1.06
-            paddle_shapes["b"].color = blue
-            space.add(paddle_shapes["a"], paddle_shapes["b"])
-        print("a = ", paddle_l_scalefactor_a)
-        print("b = ", paddle_l_scalefactor_b)
+            paddle.paddle_a_max_spd = default_max_pad_spd - ((bar_midpoint - bar_var_w)/pad_spd_to_bg_w_ratio)
+            space.remove(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
+            paddle.paddle_l_scalefactor_b = min(paddle.max_paddle_l_scalefactor, paddle.default_paddle_l_scalefactor+((paddle.max_paddle_l_scalefactor-paddle.default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
+            paddle.paddle_l_scalefactor_a = max(paddle.min_paddle_l_scalefactor, paddle.default_paddle_l_scalefactor-((paddle.max_paddle_l_scalefactor-paddle.default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
+            paddle.paddle_shapes["a"] = pymunk.Poly(paddle.paddle_a_body, paddle.paddle_a, None, 0)
+            paddle.paddle_shapes["b"] = pymunk.Poly(paddle.paddle_b_body, paddle.paddle_b, None, 0)
+            paddle.paddle_shapes["a"].elasticity = 1.06
+            paddle.paddle_shapes["a"].color = blue
+            paddle.paddle_shapes["b"].elasticity = 1.06
+            paddle.paddle_shapes["b"].color = blue
+            space.add(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
+        print("a = ", paddle.paddle_l_scalefactor_a)
+        print("b = ", paddle.paddle_l_scalefactor_b)
             
 
     if collision_type == "r_wall":
         data["player_a_score"] += score_increment
         if (bar_var_w>bar_midpoint): #if bar above 50%(player a winning)
-            paddle_b_max_spd = default_max_pad_spd - ((bar_var_w - bar_midpoint)/pad_spd_to_bg_w_ratio)
-            space.remove(paddle_shapes["a"], paddle_shapes["b"])
-            paddle_l_scalefactor_a = min(max_paddle_l_scalefactor, default_paddle_l_scalefactor+((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((bar_bg_w-quit_threshold)-bar_midpoint))))
-            paddle_l_scalefactor_b = max(min_paddle_l_scalefactor, default_paddle_l_scalefactor-((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((bar_bg_w-quit_threshold)-bar_midpoint))))
-            paddle_shapes["a"] = pymunk.Poly(paddle_a_body, paddle_a, None, 0)
-            paddle_shapes["b"] = pymunk.Poly(paddle_b_body, paddle_b, None, 0)
-            paddle_shapes["a"].elasticity = 1.06
-            paddle_shapes["a"].color = blue
-            paddle_shapes["b"].elasticity = 1.06
-            paddle_shapes["b"].color = blue
-            space.add(paddle_shapes["a"], paddle_shapes["b"])
+            paddle.paddle_b_max_spd = default_max_pad_spd - ((bar_var_w - bar_midpoint)/pad_spd_to_bg_w_ratio)
+            space.remove(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
+            paddle.paddle_l_scalefactor_a = min(paddle.max_paddle_l_scalefactor, paddle.default_paddle_l_scalefactor+((paddle.max_paddle_l_scalefactor-paddle.default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((bar_bg_w-quit_threshold)-bar_midpoint))))
+            paddle.paddle_l_scalefactor_b = max(paddle.min_paddle_l_scalefactor, paddle.default_paddle_l_scalefactor-((paddle.max_paddle_l_scalefactor-paddle.default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((bar_bg_w-quit_threshold)-bar_midpoint))))
+            paddle.paddle_shapes["a"] = pymunk.Poly(paddle.paddle_a_body, paddle.paddle_a, None, 0)
+            paddle.paddle_shapes["b"] = pymunk.Poly(paddle.paddle_b_body, paddle.paddle_b, None, 0)
+            paddle.paddle_shapes["a"].elasticity = 1.06
+            paddle.paddle_shapes["a"].color = blue
+            paddle.paddle_shapes["b"].elasticity = 1.06
+            paddle.paddle_shapes["b"].color = blue
+            space.add(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
 
         if (bar_var_w<bar_midpoint): #if bar below 50%(player b winning)
-            paddle_a_max_spd = default_max_pad_spd - ((bar_midpoint - bar_var_w)/pad_spd_to_bg_w_ratio)
-            space.remove(paddle_shapes["a"], paddle_shapes["b"])
-            paddle_l_scalefactor_b = min(max_paddle_l_scalefactor, default_paddle_l_scalefactor+((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
-            paddle_l_scalefactor_a = max(min_paddle_l_scalefactor, default_paddle_l_scalefactor-((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
-            paddle_shapes["a"] = pymunk.Poly(paddle_a_body, paddle_a, None, 0)
-            paddle_shapes["b"] = pymunk.Poly(paddle_b_body, paddle_b, None, 0)
-            paddle_shapes["a"].elasticity = 1.06
-            paddle_shapes["a"].color = blue
-            paddle_shapes["b"].elasticity = 1.06
-            paddle_shapes["b"].color = blue
-            space.add(paddle_shapes["a"], paddle_shapes["b"])
-        print("a =", paddle_l_scalefactor_a)
-        print("b =", paddle_l_scalefactor_b)
+            paddle.paddle_a_max_spd = default_max_pad_spd - ((bar_midpoint - bar_var_w)/pad_spd_to_bg_w_ratio)
+            space.remove(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
+            paddle.paddle_l_scalefactor_b = min(paddle.max_paddle_l_scalefactor, paddle.default_paddle_l_scalefactor+((paddle.max_paddle_l_scalefactor-paddle.default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
+            paddle.paddle_l_scalefactor_a = max(paddle.min_paddle_l_scalefactor, paddle.default_paddle_l_scalefactor-((paddle.max_paddle_l_scalefactor-paddle.default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
+            paddle.paddle_shapes["a"] = pymunk.Poly(paddle.paddle_a_body, paddle.paddle_a, None, 0)
+            paddle.paddle_shapes["b"] = pymunk.Poly(paddle.paddle_b_body, paddle.paddle_b, None, 0)
+            paddle.paddle_shapes["a"].elasticity = 1.06
+            paddle.paddle_shapes["a"].color = blue
+            paddle.paddle_shapes["b"].elasticity = 1.06
+            paddle.paddle_shapes["b"].color = blue
+            space.add(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
+        print("a =", paddle.paddle_l_scalefactor_a)
+        print("b =", paddle.paddle_l_scalefactor_b)
 
-    if collision_type == "paddle_a_top":
-        data["paddle_a_top_stop"] = True
+    if collision_type == "paddle.paddle_a_top":
+        data["paddle.paddle_a_top_stop"] = True
         
-    if collision_type == "paddle_a_bottom":
-        data["paddle_a_bottom_stop"] = True
+    if collision_type == "paddle.paddle_a_bottom":
+        data["paddle.paddle_a_bottom_stop"] = True
 
-    if collision_type == "paddle_b_top":
-        data["paddle_b_top_stop"] = True
+    if collision_type == "paddle.paddle_b_top":
+        data["paddle.paddle_b_top_stop"] = True
 
-    if collision_type == "paddle_b_bottom":
-        data["paddle_b_bottom_stop"] = True
+    if collision_type == "paddle.paddle_b_bottom":
+        data["paddle.paddle_b_bottom_stop"] = True
 
     
 
@@ -343,23 +299,23 @@ def separate(a, s, data):
 
     
 
-    if collision_type == "paddle_a_top":
-        data["paddle_a_top_stop"] = False
+    if collision_type == "paddle.paddle_a_top":
+        data["paddle.paddle_a_top_stop"] = False
         
     
-    if collision_type == "paddle_a_bottom":
-        data["paddle_a_bottom_stop"] = False 
+    if collision_type == "paddle.paddle_a_bottom":
+        data["paddle.paddle_a_bottom_stop"] = False 
         
 
-    if collision_type == "paddle_b_top":
-        data["paddle_b_top_stop"] = False  
+    if collision_type == "paddle.paddle_b_top":
+        data["paddle.paddle_b_top_stop"] = False  
         
 
-    if collision_type == "paddle_b_bottom":
-        data["paddle_b_bottom_stop"] = False   
+    if collision_type == "paddle.paddle_b_bottom":
+        data["paddle.paddle_b_bottom_stop"] = False   
 
     if collision_type == "ball_and_a":
-        ball_body.velocity = ball_body.velocity+(paddle_a_body.velocity*magnitude_of_paddle_influence_on_ball)
+        ball_body.velocity = ball_body.velocity+(paddle.paddle_a_body.velocity*magnitude_of_paddle_influence_on_ball)
         if streak_count < max_streak_count:
             streak_count += 1
         pygame.mixer.Sound.play(streak_sound_list[streak_count])
@@ -368,7 +324,7 @@ def separate(a, s, data):
         
 
     if collision_type == "ball_and_b": 
-        ball_body.velocity = ball_body.velocity+(paddle_b_body.velocity*magnitude_of_paddle_influence_on_ball)
+        ball_body.velocity = ball_body.velocity+(paddle.paddle_b_body.velocity*magnitude_of_paddle_influence_on_ball)
         if streak_count < max_streak_count:
             streak_count += 1
         pygame.mixer.Sound.play(streak_sound_list[streak_count])
@@ -439,14 +395,14 @@ while running:
                 W_press = False
                 S_press = False
 
-            if pressed[K_w] and (collision_handler.data["paddle_a_top_stop"] == False):
+            if pressed[K_w] and (collision_handler.data["paddle.paddle_a_top_stop"] == False):
                 W_press = True
                 S_press = False
                 #space.gravity = (0, -5)
 
 
             
-            if pressed[K_s] and (collision_handler.data["paddle_a_bottom_stop"] == False):
+            if pressed[K_s] and (collision_handler.data["paddle.paddle_a_bottom_stop"] == False):
                 S_press = True
                 W_press= False
                # space.gravity = (0, 5)
@@ -464,12 +420,12 @@ while running:
                 Down_press = False
 
 
-            if pressed[K_UP] and (collision_handler.data["paddle_b_top_stop"] == False):
+            if pressed[K_UP] and (collision_handler.data["paddle.paddle_b_top_stop"] == False):
                 Up_press = True
                 Down_press = False
                 #space.gravity = (0, -5)
 
-            if pressed[K_DOWN] and (collision_handler.data["paddle_b_bottom_stop"] == False):
+            if pressed[K_DOWN] and (collision_handler.data["paddle.paddle_b_bottom_stop"] == False):
                 Down_press = True
                 Up_press = False
                 #space.gravity = (0, 5)
@@ -480,52 +436,52 @@ while running:
     deceleration_spd = 0.995 # (Default = 0.995) WILL ONLY DECELERATE IF THE NUMBER IS LOWER THAN 1, the higher the number, the slower it decelerates
 
     if  W_press == True:
-        lvx, lvy=paddle_a_body.velocity
-        paddle_a_body.velocity = (0, max(-paddle_a_max_spd, lvy-acceleration_spd))
+        lvx, lvy=paddle.paddle_a_body.velocity
+        paddle.paddle_a_body.velocity = (0, max(-paddle.paddle_a_max_spd, lvy-acceleration_spd))
        # space.gravity = (0, -5)        
 
     if S_press == True:
-        lvx, lvy=paddle_a_body.velocity
-        paddle_a_body.velocity = (0, min(paddle_a_max_spd, lvy+acceleration_spd))
+        lvx, lvy=paddle.paddle_a_body.velocity
+        paddle.paddle_a_body.velocity = (0, min(paddle.paddle_a_max_spd, lvy+acceleration_spd))
        # space.gravity = (0, 5)
     
     if W_press == False and S_press == False:
-        lvx, lvy=paddle_a_body.velocity
-        paddle_a_body.velocity = paddle_a_body.velocity*deceleration_spd
-        if paddle_a_body.velocity.length < 1:
-            paddle_a_body.velocity = Vec2d(0, 0)
+        lvx, lvy=paddle.paddle_a_body.velocity
+        paddle.paddle_a_body.velocity = paddle.paddle_a_body.velocity*deceleration_spd
+        if paddle.paddle_a_body.velocity.length < 1:
+            paddle.paddle_a_body.velocity = Vec2d(0, 0)
     
 
     if  Up_press == True:
-        rvx, rvy=paddle_b_body.velocity
-        paddle_b_body.velocity = (0, max(-paddle_b_max_spd, rvy-acceleration_spd))
+        rvx, rvy=paddle.paddle_b_body.velocity
+        paddle.paddle_b_body.velocity = (0, max(-paddle.paddle_b_max_spd, rvy-acceleration_spd))
         
         #space.gravity = (0, -5)
 
     if Down_press == True:
-        rvx, rvy=paddle_b_body.velocity
-        paddle_b_body.velocity = (0, min(paddle_b_max_spd, rvy+acceleration_spd))
+        rvx, rvy=paddle.paddle_b_body.velocity
+        paddle.paddle_b_body.velocity = (0, min(paddle.paddle_b_max_spd, rvy+acceleration_spd))
         #space.gravity = (0, 5)
 
     if Up_press == False and Down_press == False:
-        rvx, rvy=paddle_b_body.velocity
-        paddle_b_body.velocity = paddle_b_body.velocity*deceleration_spd
-        if paddle_b_body.velocity.length < 1:
-            paddle_b_body.velocity = Vec2d(0, 0)
+        rvx, rvy=paddle.paddle_b_body.velocity
+        paddle.paddle_b_body.velocity = paddle.paddle_b_body.velocity*deceleration_spd
+        if paddle.paddle_b_body.velocity.length < 1:
+            paddle.paddle_b_body.velocity = Vec2d(0, 0)
 
     #Collision Maintainence
 
-    if collision_handler.data["paddle_a_bottom_stop"] == True:
-        paddle_a_body.velocity = (0, min(0,paddle_a_body.velocity[1]))
+    if collision_handler.data["paddle.paddle_a_bottom_stop"] == True:
+        paddle.paddle_a_body.velocity = (0, min(0,paddle.paddle_a_body.velocity[1]))
 
-    if collision_handler.data["paddle_a_top_stop"] == True:
-        paddle_a_body.velocity = (0, max(0,paddle_a_body.velocity[1]))
+    if collision_handler.data["paddle.paddle_a_top_stop"] == True:
+        paddle.paddle_a_body.velocity = (0, max(0,paddle.paddle_a_body.velocity[1]))
 
-    if collision_handler.data["paddle_b_bottom_stop"] == True:
-        paddle_b_body.velocity = (0, min(0,paddle_b_body.velocity[1]))
+    if collision_handler.data["paddle.paddle_b_bottom_stop"] == True:
+        paddle.paddle_b_body.velocity = (0, min(0,paddle.paddle_b_body.velocity[1]))
 
-    if collision_handler.data["paddle_b_top_stop"] == True:
-        paddle_b_body.velocity = (0, max(0,paddle_b_body.velocity[1]))
+    if collision_handler.data["paddle.paddle_b_top_stop"] == True:
+        paddle.paddle_b_body.velocity = (0, max(0,paddle.paddle_b_body.velocity[1]))
     
     #streak
     streak_sound_index = min(streak_count, 5)
