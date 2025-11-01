@@ -8,6 +8,7 @@ import os
 import sys
 import pymunk.pygame_util
 import paddle
+import ball
 
 
 
@@ -79,33 +80,13 @@ for wall in walls:
     wall.elasticity = wall_elasticity
 space.add(*walls)
 
-def create_ball(radius, bounciness, mass, moment):
-    ball_spd = random.randint(15, 30)
-    a_range = range(30, 60)
-    b_range = range(120, 150)
-    c_range = range(210, 240)
-    d_range = range(300, 330)
-    angle_ranges = list(itertools.chain(a_range, b_range, c_range, d_range))
-    angle_deg = random.choice(angle_ranges)
-    #print(angle_deg)
-    angle = math.radians(angle_deg)
-    ball_body = pymunk.Body(mass, moment, body_type=pymunk.Body.DYNAMIC)
-    ball_body.position = (300, 300)
-    ball_body.velocity = (ball_spd*math.cos(angle), ball_spd*math.sin(angle))
-    ball_body.damping = 0.99
-    ball = pymunk.Circle(ball_body, radius)
-    ball.color = turquoise
-    ball.elasticity = bounciness
-    space.add(ball_body, ball)
-    
-    return ball_body, ball
-
-
 
 # Objects
-ball_body, ball = create_ball(20, 1, 1, 10)
-ball_move_x = ball_body.velocity[0]
-ball_move_y = ball_body.velocity[1]
+# ball.ball_body, ball = create_ball(20, 1, 1, 10)
+# space.add(ball.ball_body, ball)
+ball.add_ball_to_space(space)
+ball_move_x = ball.ball_body.velocity[0]
+ball_move_y = ball.ball_body.velocity[1]
 
 # Audio
 miss_sound = pygame.mixer.Sound("Miss.wav")
@@ -315,7 +296,7 @@ def separate(a, s, data):
         data["paddle.paddle_b_bottom_stop"] = False   
 
     if collision_type == "ball_and_a":
-        ball_body.velocity = ball_body.velocity+(paddle.paddle_a_body.velocity*magnitude_of_paddle_influence_on_ball)
+        ball.ball_body.velocity = ball.ball_body.velocity+(paddle.paddle_a_body.velocity*magnitude_of_paddle_influence_on_ball)
         if streak_count < max_streak_count:
             streak_count += 1
         pygame.mixer.Sound.play(streak_sound_list[streak_count])
@@ -324,7 +305,7 @@ def separate(a, s, data):
         
 
     if collision_type == "ball_and_b": 
-        ball_body.velocity = ball_body.velocity+(paddle.paddle_b_body.velocity*magnitude_of_paddle_influence_on_ball)
+        ball.ball_body.velocity = ball.ball_body.velocity+(paddle.paddle_b_body.velocity*magnitude_of_paddle_influence_on_ball)
         if streak_count < max_streak_count:
             streak_count += 1
         pygame.mixer.Sound.play(streak_sound_list[streak_count])
