@@ -9,6 +9,7 @@ import sys
 import pymunk.pygame_util
 import paddle
 import ball
+import audio
 
 
 
@@ -88,20 +89,7 @@ ball.add_ball_to_space(space)
 ball_move_x = ball.ball_body.velocity[0]
 ball_move_y = ball.ball_body.velocity[1]
 
-# Audio
-miss_sound = pygame.mixer.Sound("Miss.wav")
-miss_sound.set_volume(0.2)
-streak_broken_sound = pygame.mixer.Sound("Streak Broken.wav")
-streak_broken_sound.set_volume(0.2)
-value_considered_streak = 2
-max_streak_count = 5
-streak_count = 0
-streak_sound_list = ["placeholder",
-                     pygame.mixer.Sound("Hit 1.wav"),
-                     pygame.mixer.Sound("Hit 2.wav"), 
-                     pygame.mixer.Sound("Hit 3.wav"), 
-                     pygame.mixer.Sound("Hit 4.wav"), 
-                     pygame.mixer.Sound("Hit 5.wav") ]
+
 
 
 
@@ -161,23 +149,22 @@ def detect_collision(a):
 
 
 def begin(a, s, data):
-    global streak_count
     collision_type = detect_collision(a)
 
     if collision_type == "l_wall":
-        if streak_count >= value_considered_streak:
-            streak_count = 0
-            pygame.mixer.Sound.play(streak_broken_sound)
+        if audio.streak_count >= audio.value_considered_streak:
+            audio.streak_count = 0
+            pygame.mixer.Sound.play(audio.streak_broken_sound)
         else:
-            pygame.mixer.Sound.play(miss_sound)
+            pygame.mixer.Sound.play(audio.miss_sound)
         
     
     if collision_type == "r_wall":
-        if streak_count >= value_considered_streak :
-            streak_count = 0
-            pygame.mixer.Sound.play(streak_broken_sound)
+        if audio.streak_count >= audio.value_considered_streak :
+            audio.streak_count = 0
+            pygame.mixer.Sound.play(audio.streak_broken_sound)
         else:
-            pygame.mixer.Sound.play(miss_sound)
+            pygame.mixer.Sound.play(audio.miss_sound)
 
     
         
@@ -274,7 +261,6 @@ def post_solve(a, s, d):
 
 
 def separate(a, s, data):
-    global streak_count
     collision_type = detect_collision(a)
     magnitude_of_paddle_influence_on_ball  = 0.5 #Anything above 1 is very very obvious
 
@@ -297,18 +283,18 @@ def separate(a, s, data):
 
     if collision_type == "ball_and_a":
         ball.ball_body.velocity = ball.ball_body.velocity+(paddle.paddle_a_body.velocity*magnitude_of_paddle_influence_on_ball)
-        if streak_count < max_streak_count:
-            streak_count += 1
-        pygame.mixer.Sound.play(streak_sound_list[streak_count])
+        if audio.streak_count < audio.max_streak_count:
+            audio.streak_count += 1
+        pygame.mixer.Sound.play(audio.streak_sound_list[audio.streak_count])
         
         
         
 
     if collision_type == "ball_and_b": 
         ball.ball_body.velocity = ball.ball_body.velocity+(paddle.paddle_b_body.velocity*magnitude_of_paddle_influence_on_ball)
-        if streak_count < max_streak_count:
-            streak_count += 1
-        pygame.mixer.Sound.play(streak_sound_list[streak_count])
+        if audio.streak_count < audio.max_streak_count:
+            audio.streak_count += 1
+        pygame.mixer.Sound.play(audio.streak_sound_list[audio.streak_count])
         
         
             
@@ -465,8 +451,8 @@ while running:
         paddle.paddle_b_body.velocity = (0, max(0,paddle.paddle_b_body.velocity[1]))
     
     #streak
-    streak_sound_index = min(streak_count, 5)
-    streak_sound_list[streak_sound_index]
+    streak_sound_index = min(audio.streak_count, 5)
+    audio.streak_sound_list[streak_sound_index]
         
 
 
