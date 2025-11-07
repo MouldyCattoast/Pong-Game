@@ -132,7 +132,7 @@ def detect_collision(a):
 
     #print(paddle.paddle_shapes["a"])
 
-    ball_collision = ball in a.shapes
+    ball_collision = ball.ball in a.shapes
 
     if (paddle.paddle_a_collision and top_wall_collision) :
         return "paddle.paddle_a_top"
