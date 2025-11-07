@@ -12,6 +12,14 @@ import pymunk.pygame_util
 hztl_size = 600
 vtcl_size = 600
 
+# speed
+FPS = 60
+gamespeed = 1/FPS
+default_max_pad_spd = 22
+paddle_a_max_spd = default_max_pad_spd
+paddle_b_max_spd = default_max_pad_spd
+
+
 # colours
 indigo = (32, 11, 105, 1)
 blue = (111, 35, 255, 1)
@@ -72,3 +80,63 @@ paddle_b_body, paddle_shapes["b"] = create_paddle(paddle_b)
 
 def add_paddle_to_space(space):
     space.add(paddle_a_body, paddle_b_body, paddle_shapes["a"], paddle_shapes["b"])
+
+
+
+def player_a_score_winning(bar_var_w, bar_midpoint, pad_spd_to_bg_w_ratio, bar_bg_w, quit_threshold):
+    
+    global paddle_b_max_spd, paddle_l_scalefactor_a, paddle_l_scalefactor_b
+    
+    paddle_b_max_spd = default_max_pad_spd - ((bar_var_w - bar_midpoint)/pad_spd_to_bg_w_ratio)
+    paddle_l_scalefactor_a = min(max_paddle_l_scalefactor, default_paddle_l_scalefactor+((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((bar_bg_w-quit_threshold)-bar_midpoint))))
+    paddle_l_scalefactor_b = max(min_paddle_l_scalefactor, default_paddle_l_scalefactor-((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((bar_bg_w-quit_threshold)-bar_midpoint))))
+    paddle_shapes["a"] = pymunk.Poly(paddle_a_body, paddle_a, None, 0)
+    paddle_shapes["b"] = pymunk.Poly(paddle_b_body, paddle_b, None, 0)
+    paddle_shapes["a"].elasticity = 1.06
+    paddle_shapes["a"].color = blue
+    paddle_shapes["b"].elasticity = 1.06
+    paddle_shapes["b"].color = blue
+    
+def player_a_score_losing(bar_var_w, bar_midpoint, pad_spd_to_bg_w_ratio, quit_threshold):
+    
+    global paddle_a_max_spd, paddle_l_scalefactor_a, paddle_l_scalefactor_b
+    
+    paddle_a_max_spd = default_max_pad_spd - ((bar_midpoint - bar_var_w)/pad_spd_to_bg_w_ratio)
+    paddle_l_scalefactor_b = min(max_paddle_l_scalefactor, default_paddle_l_scalefactor+((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
+    paddle_l_scalefactor_a = max(min_paddle_l_scalefactor, default_paddle_l_scalefactor-((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
+    paddle_shapes["a"] = pymunk.Poly(paddle_a_body, paddle_a, None, 0)
+    paddle_shapes["b"] = pymunk.Poly(paddle_b_body, paddle_b, None, 0)
+    paddle_shapes["a"].elasticity = 1.06
+    paddle_shapes["a"].color = blue
+    paddle_shapes["b"].elasticity = 1.06
+    paddle_shapes["b"].color = blue
+
+def player_b_score_winning(bar_var_w, bar_midpoint, pad_spd_to_bg_w_ratio, quit_threshold):
+    
+    global paddle_a_max_spd, paddle_l_scalefactor_a, paddle_l_scalefactor_b
+
+    paddle_a_max_spd = default_max_pad_spd - ((bar_midpoint - bar_var_w)/pad_spd_to_bg_w_ratio)
+    paddle_l_scalefactor_b = min(max_paddle_l_scalefactor, default_paddle_l_scalefactor+((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
+    paddle_l_scalefactor_a = max(min_paddle_l_scalefactor, default_paddle_l_scalefactor-((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_midpoint-bar_var_w)/(bar_midpoint-quit_threshold))))
+    paddle_shapes["a"] = pymunk.Poly(paddle_a_body, paddle_a, None, 0)
+    paddle_shapes["b"] = pymunk.Poly(paddle_b_body, paddle_b, None, 0)
+    paddle_shapes["a"].elasticity = 1.06
+    paddle_shapes["a"].color = blue
+    paddle_shapes["b"].elasticity = 1.06
+    paddle_shapes["b"].color = blue
+
+def player_b_score_losing(bar_var_w, bar_midpoint, pad_spd_to_bg_w_ratio, bar_bg_w, quit_threshold):
+    
+    global paddle_b_max_spd, paddle_l_scalefactor_a, paddle_l_scalefactor_b
+
+   
+    paddle_b_max_spd = default_max_pad_spd - ((bar_var_w - bar_midpoint)/pad_spd_to_bg_w_ratio)
+    paddle_l_scalefactor_a = min(max_paddle_l_scalefactor, default_paddle_l_scalefactor+((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((bar_bg_w-quit_threshold)-bar_midpoint))))
+    paddle_l_scalefactor_b = max(min_paddle_l_scalefactor, default_paddle_l_scalefactor-((max_paddle_l_scalefactor-default_paddle_l_scalefactor)*((bar_var_w - bar_midpoint)/((bar_bg_w-quit_threshold)-bar_midpoint))))
+    paddle_shapes["a"] = pymunk.Poly(paddle_a_body, paddle_a, None, 0)
+    paddle_shapes["b"] = pymunk.Poly(paddle_b_body, paddle_b, None, 0)
+    paddle_shapes["a"].elasticity = 1.06
+    paddle_shapes["a"].color = blue
+    paddle_shapes["b"].elasticity = 1.06
+    paddle_shapes["b"].color = blue
+   
