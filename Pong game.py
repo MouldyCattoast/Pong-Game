@@ -330,15 +330,10 @@ while running:
                 S_press = False
                 #space.gravity = (0, -5)
 
-
-            
             if pressed[K_s] and (collision_handler.data["paddle_a_bottom_stop"] == False):
                 S_press = True
                 W_press= False
                # space.gravity = (0, 5)
-
-            
-
 
             # Player 2 Controls
 
@@ -348,8 +343,7 @@ while running:
             if not pressed[K_UP] and not pressed[K_DOWN]:
                 Up_press = False
                 Down_press = False
-
-
+                
             if pressed[K_UP] and (collision_handler.data["paddle_b_top_stop"] == False):
                 Up_press = True
                 Down_press = False
@@ -360,59 +354,10 @@ while running:
                 Up_press = False
                 #space.gravity = (0, 5)
 
+    paddle.assign_controls(W_press, S_press, Up_press, Down_press)
 
-
-    acceleration_spd = 0.06 # (Default = 0.06) The higher the number the faster it accelerates
-    deceleration_spd = 0.995 # (Default = 0.995) WILL ONLY DECELERATE IF THE NUMBER IS LOWER THAN 1, the higher the number, the slower it decelerates
-
-    if  W_press == True:
-        lvx, lvy=paddle.paddle_a_body.velocity
-        paddle.paddle_a_body.velocity = (0, max(-paddle.paddle_a_max_spd, lvy-acceleration_spd))
-       # space.gravity = (0, -5)        
-
-    if S_press == True:
-        lvx, lvy=paddle.paddle_a_body.velocity
-        paddle.paddle_a_body.velocity = (0, min(paddle.paddle_a_max_spd, lvy+acceleration_spd))
-       # space.gravity = (0, 5)
-    
-    if W_press == False and S_press == False:
-        lvx, lvy=paddle.paddle_a_body.velocity
-        paddle.paddle_a_body.velocity = paddle.paddle_a_body.velocity*deceleration_spd
-        if paddle.paddle_a_body.velocity.length < 1:
-            paddle.paddle_a_body.velocity = Vec2d(0, 0)
-    
-
-    if  Up_press == True:
-        rvx, rvy=paddle.paddle_b_body.velocity
-        paddle.paddle_b_body.velocity = (0, max(-paddle.paddle_b_max_spd, rvy-acceleration_spd))
+    paddle.limit_paddle(collision_handler)
         
-        #space.gravity = (0, -5)
-
-    if Down_press == True:
-        rvx, rvy=paddle.paddle_b_body.velocity
-        paddle.paddle_b_body.velocity = (0, min(paddle.paddle_b_max_spd, rvy+acceleration_spd))
-        #space.gravity = (0, 5)
-
-    if Up_press == False and Down_press == False:
-        rvx, rvy=paddle.paddle_b_body.velocity
-        paddle.paddle_b_body.velocity = paddle.paddle_b_body.velocity*deceleration_spd
-        if paddle.paddle_b_body.velocity.length < 1:
-            paddle.paddle_b_body.velocity = Vec2d(0, 0)
-
-    #Collision Maintainence
-
-    if collision_handler.data["paddle_a_bottom_stop"] == True:
-        paddle.paddle_a_body.velocity = (0, min(0,paddle.paddle_a_body.velocity[1]))
-
-    if collision_handler.data["paddle_a_top_stop"] == True:
-        paddle.paddle_a_body.velocity = (0, max(0,paddle.paddle_a_body.velocity[1]))
-
-    if collision_handler.data["paddle_b_bottom_stop"] == True:
-        paddle.paddle_b_body.velocity = (0, min(0,paddle.paddle_b_body.velocity[1]))
-
-    if collision_handler.data["paddle_b_top_stop"] == True:
-        paddle.paddle_b_body.velocity = (0, max(0,paddle.paddle_b_body.velocity[1]))
-    
     #streak
     streak_sound_index = min(audio.streak_count, 5)
     audio.streak_sound_list[streak_sound_index]

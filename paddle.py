@@ -1,12 +1,6 @@
 import pygame
 import pymunk
 from pymunk.vec2d import Vec2d
-import math
-import random
-import itertools
-import os
-import sys
-import pymunk.pygame_util
 
 # screen
 hztl_size = 600
@@ -41,6 +35,11 @@ min_paddle_l_scalefactor = default_paddle_l_scalefactor * (1-(paddle_size_variat
 paddle_l_scalefactor_a = default_paddle_l_scalefactor
 paddle_l_scalefactor_b = default_paddle_l_scalefactor
 paddle_w_scalefactor = 5
+
+acceleration_spd = 0.06 # (Default = 0.06) The higher the number the faster it accelerates
+deceleration_spd = 0.995 # (Default = 0.995) WILL ONLY DECELERATE IF THE NUMBER IS LOWER THAN 1, the higher the number, the slower it decelerates
+
+
 
 paddle_a = [
         Vec2d(left_wall, 0),  # topleft
@@ -139,4 +138,56 @@ def player_b_score_losing(bar_var_w, bar_midpoint, pad_spd_to_bg_w_ratio, bar_bg
     paddle_shapes["a"].color = blue
     paddle_shapes["b"].elasticity = 1.06
     paddle_shapes["b"].color = blue
+
+   
+def assign_controls(W_press, S_press, Up_press, Down_press):
+    global acceleration_spd, deceleration_spd, paddle_a_body, paddle_b_body
+
+    if  W_press == True:
+        lvx, lvy=paddle_a_body.velocity
+        paddle_a_body.velocity = (0, max(-paddle_a_max_spd, lvy-acceleration_spd))
+       # space.gravity = (0, -5)        
+
+    if S_press == True:
+        lvx, lvy=paddle_a_body.velocity
+        paddle_a_body.velocity = (0, min(paddle_a_max_spd, lvy+acceleration_spd))
+       # space.gravity = (0, 5)
+    
+    if W_press == False and S_press == False:
+        lvx, lvy=paddle_a_body.velocity
+        paddle_a_body.velocity = paddle_a_body.velocity*deceleration_spd
+        if paddle_a_body.velocity.length < 1:
+            paddle_a_body.velocity = Vec2d(0, 0)
+    
+
+    if  Up_press == True:
+        rvx, rvy=paddle_b_body.velocity
+        paddle_b_body.velocity = (0, max(-paddle_b_max_spd, rvy-acceleration_spd))
+        
+        #space.gravity = (0, -5)
+
+    if Down_press == True:
+        rvx, rvy=paddle_b_body.velocity
+        paddle_b_body.velocity = (0, min(paddle_b_max_spd, rvy+acceleration_spd))
+        #space.gravity = (0, 5)
+
+    if Up_press == False and Down_press == False:
+        rvx, rvy=paddle_b_body.velocity
+        paddle_b_body.velocity = paddle_b_body.velocity*deceleration_spd
+        if paddle_b_body.velocity.length < 1:
+            paddle_b_body.velocity = Vec2d(0, 0)
+
+def limit_paddle(collision_handler):
+    if collision_handler.data["paddle_a_bottom_stop"] == True:
+        paddle_a_body.velocity = (0, min(0,paddle_a_body.velocity[1]))
+
+    if collision_handler.data["paddle_a_top_stop"] == True:
+        paddle_a_body.velocity = (0, max(0,paddle_a_body.velocity[1]))
+
+    if collision_handler.data["paddle_b_bottom_stop"] == True:
+        paddle_b_body.velocity = (0, min(0,paddle_b_body.velocity[1]))
+
+    if collision_handler.data["paddle_b_top_stop"] == True:
+        paddle_b_body.velocity = (0, max(0,paddle_b_body.velocity[1]))
+    
    

@@ -1,12 +1,7 @@
-import pygame
 import pymunk
-from pymunk.vec2d import Vec2d
 import math
 import random
 import itertools
-import os
-import sys
-import pymunk.pygame_util
 
 # screen
 hztl_size = 600

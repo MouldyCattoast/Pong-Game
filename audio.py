@@ -1,17 +1,4 @@
 import pygame
-import pymunk
-from pymunk.vec2d import Vec2d
-import math
-import random
-import itertools
-import os
-import sys
-import pymunk.pygame_util
-import paddle
-import ball
-
-
-
 
 pygame.init()
 pygame.font.init()
