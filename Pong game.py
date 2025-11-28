@@ -19,37 +19,37 @@ pygame.font.init()
 pygame.mixer.init()
 
 # colours
-indigo = (32, 11, 105, 1)
-blue = (111, 35, 255, 1)
-turquoise = (3, 255, 190, 1)
-fuschia = (255, 0, 245, 1)
-cyan = (0, 209, 255, 1)
+INDIGO = (32, 11, 105, 1)
+BLUE = (111, 35, 255, 1)
+TURQUOISE = (3, 255, 190, 1)
+FUSCHIA = (255, 0, 245, 1)
+CYAN = (0, 209, 255, 1)
 
 
-# screen
-hztl_size = 600
-vtcl_size = 600
-screensize = (hztl_size, vtcl_size)
-screen = pygame.display.set_mode(screensize)
-font_path = pygame.font.match_font("Times")
-font = pygame.font.Font(font_path, 24)
+# SCREEN
+HZTL_SIZE = 600
+VTCL_SIZE = 600
+SCREENSIZE = (HZTL_SIZE, VTCL_SIZE)
+SCREEN = pygame.display.set_mode(SCREENSIZE)
+FONT_PATH = pygame.font.match_font("Times")
+font = pygame.font.Font(FONT_PATH, 24)
 
 
 # speed
 FPS = 60
-gamespeed = 1/FPS
-default_max_pad_spd = 22
+GAMESPEED = 1/FPS
+DEFAULT_MAX_PAD_SPD = 22
 # boundaries
-left_wall = 0
-right_wall = hztl_size
-top_wall = 0
-bottom_wall = vtcl_size
+LEFT_WALL = 0
+RIGHT_WALL = HZTL_SIZE
+TOP_WALL = 0
+BOTTOM_WALL = VTCL_SIZE
 
 # corners
-topleft = (left_wall, top_wall)
-topright = (right_wall, top_wall)
-bottomleft = (left_wall, bottom_wall)
-bottomright = (right_wall, bottom_wall)
+TOPLEFT = (LEFT_WALL, TOP_WALL)
+TOPRIGHT = (RIGHT_WALL, TOP_WALL)
+BOTTOMLEFT = (LEFT_WALL, BOTTOM_WALL)
+BOTTOMRIGHT = (RIGHT_WALL, BOTTOM_WALL)
 
 
 
@@ -58,15 +58,15 @@ bottomright = (right_wall, bottom_wall)
 
 space = pymunk.Space()
 space.gravity = (0, 0)
-draw_options = pymunk.pygame_util.DrawOptions(screen)
+draw_options = pymunk.pygame_util.DrawOptions(SCREEN)
 paddle.add_paddle_to_space(space)
 
 # walls
-wall_elasticity = 0.96
-bottom = pymunk.Segment(space.static_body, bottomleft, bottomright, wall_elasticity)
-right = pymunk.Segment(space.static_body, topright, bottomright, wall_elasticity)
-top = pymunk.Segment(space.static_body, topleft, topright, wall_elasticity)
-left = pymunk.Segment(space.static_body, topleft, bottomleft, wall_elasticity)
+WALL_ELASTICITY = 0.96
+bottom = pymunk.Segment(space.static_body, BOTTOMLEFT, BOTTOMRIGHT, WALL_ELASTICITY)
+right = pymunk.Segment(space.static_body, TOPRIGHT, BOTTOMRIGHT, WALL_ELASTICITY)
+top = pymunk.Segment(space.static_body, TOPLEFT, TOPRIGHT, WALL_ELASTICITY)
+left = pymunk.Segment(space.static_body, TOPLEFT, BOTTOMLEFT, WALL_ELASTICITY)
 walls = [
     bottom,
     right,
@@ -75,13 +75,11 @@ walls = [
 ]
 
 for wall in walls:
-    wall.elasticity = wall_elasticity
+    wall.elasticity = WALL_ELASTICITY
 space.add(*walls)
 
 
 # Objects
-# ball.ball_body, ball = create_ball(20, 1, 1, 10)
-# space.add(ball.ball_body, ball)
 ball.add_ball_to_space(space)
 ball_move_x = ball.ball_body.velocity[0]
 ball_move_y = ball.ball_body.velocity[1]
@@ -107,38 +105,38 @@ collision_handler.data["paddle_b_bottom_stop"] = False
 
 
 def detect_collision(a):
-    left_wall_collision = left in a.shapes
-    right_wall_collision = right in a.shapes
-    top_wall_collision = top in a.shapes
-    bottom_wall_collision = bottom in a.shapes
+    LEFT_WALL_COLLISION = left in a.shapes
+    RIGHT_WALL_COLLISION = right in a.shapes
+    TOP_WALL_COLLISION = top in a.shapes
+    BOTTOM_WALL_COLLISION = bottom in a.shapes
 
     paddle.paddle_a_collision = paddle.paddle_shapes["a"] in a.shapes
     paddle.paddle_b_collision = paddle.paddle_shapes["b"] in a.shapes
 
-    ball_collision = ball.ball in a.shapes
+    BALL_COLLISION = ball.ball in a.shapes
 
-    if (paddle.paddle_a_collision and top_wall_collision) :
+    if (paddle.paddle_a_collision and TOP_WALL_COLLISION) :
         return "paddle_a_top"
 
-    if(paddle.paddle_a_collision and bottom_wall_collision):
+    if(paddle.paddle_a_collision and BOTTOM_WALL_COLLISION):
         return "paddle_a_bottom"
 
-    if (paddle.paddle_b_collision and top_wall_collision):
+    if (paddle.paddle_b_collision and TOP_WALL_COLLISION):
         return "paddle_b_top"
     
-    if(paddle.paddle_b_collision and bottom_wall_collision):
+    if(paddle.paddle_b_collision and BOTTOM_WALL_COLLISION):
         return "paddle_b_bottom"
     
-    if(left_wall_collision and ball_collision):
+    if(LEFT_WALL_COLLISION and BALL_COLLISION):
         return "l_wall"
     
-    if(right_wall_collision and ball_collision):
+    if(RIGHT_WALL_COLLISION and BALL_COLLISION):
         return "r_wall"
     
-    if(paddle.paddle_a_collision and ball_collision):
+    if(paddle.paddle_a_collision and BALL_COLLISION):
         return "ball_and_a"
     
-    if(paddle.paddle_b_collision and ball_collision):
+    if(paddle.paddle_b_collision and BALL_COLLISION):
         return "ball_and_b"
     
 
@@ -147,7 +145,7 @@ def begin(a, s, data):
     collision_type = detect_collision(a)
 
     if collision_type == "l_wall":
-        if audio.streak_count >= audio.value_considered_streak:
+        if audio.streak_count >= audio.VALUE_CONSIDERED_STREAK:
             audio.streak_count = 0
             pygame.mixer.Sound.play(audio.streak_broken_sound)
         else:
@@ -155,7 +153,7 @@ def begin(a, s, data):
         
     
     if collision_type == "r_wall":
-        if audio.streak_count >= audio.value_considered_streak :
+        if audio.streak_count >= audio.VALUE_CONSIDERED_STREAK :
             audio.streak_count = 0
             pygame.mixer.Sound.play(audio.streak_broken_sound)
         else:
@@ -246,18 +244,18 @@ def separate(a, s, data):
 
     if collision_type == "ball_and_a":
         ball.ball_body.velocity = ball.ball_body.velocity+(paddle.paddle_a_body.velocity*magnitude_of_paddle_influence_on_ball)
-        if audio.streak_count < audio.max_streak_count:
+        if audio.streak_count < audio.MAX_STREAK_COUNT:
             audio.streak_count += 1
-        pygame.mixer.Sound.play(audio.streak_sound_list[audio.streak_count])
+        pygame.mixer.Sound.play(audio.STREAK_SOUND_LIST[audio.streak_count])
         
         
         
 
     if collision_type == "ball_and_b": 
         ball.ball_body.velocity = ball.ball_body.velocity+(paddle.paddle_b_body.velocity*magnitude_of_paddle_influence_on_ball)
-        if audio.streak_count < audio.max_streak_count:
+        if audio.streak_count < audio.MAX_STREAK_COUNT:
             audio.streak_count += 1
-        pygame.mixer.Sound.play(audio.streak_sound_list[audio.streak_count])
+        pygame.mixer.Sound.play(audio.STREAK_SOUND_LIST[audio.streak_count])
         
         
             
@@ -275,7 +273,7 @@ half_of_bar = bar_bg_w/2
 bar_bg = pygame.Rect(100, 20 , bar_bg_w, 20)
 bar_var_w = bar_midpoint
 quit_threshold = 0.25 * bar_bg_w
-pad_spd_to_bg_w_ratio = (((bar_bg_w-quit_threshold)-half_of_bar)/default_max_pad_spd)
+pad_spd_to_bg_w_ratio = (((bar_bg_w-quit_threshold)-half_of_bar)/DEFAULT_MAX_PAD_SPD)
 
 W_press = False
 S_press = False
@@ -343,7 +341,7 @@ while running:
             if not pressed[K_UP] and not pressed[K_DOWN]:
                 Up_press = False
                 Down_press = False
-                
+
             if pressed[K_UP] and (collision_handler.data["paddle_b_top_stop"] == False):
                 Up_press = True
                 Down_press = False
@@ -360,23 +358,23 @@ while running:
         
     #streak
     streak_sound_index = min(audio.streak_count, 5)
-    audio.streak_sound_list[streak_sound_index]
+    audio.STREAK_SOUND_LIST[streak_sound_index]
         
     player_a_score_surface = font.render(
-        f"Player A: {collision_handler.data["player_a_score"]}", True, turquoise
+        f"Player A: {collision_handler.data["player_a_score"]}", True, TURQUOISE
     )
 
     player_b_score_surface = font.render(
-        f"Player B: {collision_handler.data["player_b_score"]}", True, turquoise
+        f"Player B: {collision_handler.data["player_b_score"]}", True, TURQUOISE
     )
     
-    screen.fill(indigo)
-    pygame.draw.rect(screen, fuschia, bar_bg)
-    pygame.draw.rect(screen, cyan, bar_var)
-    """screen.blit(player_a_score_surface, (10, 10))
-    screen.blit(player_b_score_surface, (10, 50))"""
+    SCREEN.fill(INDIGO)
+    pygame.draw.rect(SCREEN, FUSCHIA, bar_bg)
+    pygame.draw.rect(SCREEN, CYAN, bar_var)
+    """SCREEN.blit(player_a_score_surface, (10, 10))
+    SCREEN.blit(player_b_score_surface, (10, 50))"""
     space.debug_draw(draw_options)
     pygame.display.flip()
-    space.step(gamespeed)
+    space.step(GAMESPEED)
 pygame.quit()
 sys.exit()

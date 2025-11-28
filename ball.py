@@ -4,21 +4,21 @@ import random
 import itertools
 
 # screen
-hztl_size = 600
-vtcl_size = 600
+HZTL_SIZE = 600
+VTCL_SIZE = 600
 
 # colours
-indigo = (32, 11, 105, 1)
-blue = (111, 35, 255, 1)
-turquoise = (3, 255, 190, 1)
-fuschia = (255, 0, 245, 1)
-cyan = (0, 209, 255, 1)
+INDIGO = (32, 11, 105, 1)
+BLUE = (111, 35, 255, 1)
+TURQUOISE = (3, 255, 190, 1)
+FUSCHIA = (255, 0, 245, 1)
+CYAN = (0, 209, 255, 1)
 
 # boundaries
-left_wall = 0
-right_wall = hztl_size
-top_wall = 0
-bottom_wall = vtcl_size
+LEFT_WALL = 0
+RIGHT_WALL = HZTL_SIZE
+TOP_WALL = 0
+BOTTOM_WALL = VTCL_SIZE
 
 def create_ball(radius, bounciness, mass, moment):
     ball_spd = random.randint(15, 30)
@@ -35,7 +35,7 @@ def create_ball(radius, bounciness, mass, moment):
     ball_body.velocity = (ball_spd*math.cos(angle), ball_spd*math.sin(angle))
     ball_body.damping = 0.99
     ball = pymunk.Circle(ball_body, radius)
-    ball.color = turquoise
+    ball.color = TURQUOISE
     ball.elasticity = bounciness
     return ball_body, ball
 
