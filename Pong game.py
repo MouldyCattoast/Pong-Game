@@ -167,16 +167,12 @@ def begin(a, s, data):
 
         data["player_b_score"] += score_increment
         if bar_var_w>bar_midpoint: #if bar above 50%(player a winning)
-            paddle.player_b_score_losing(bar_var_w, bar_midpoint, pad_spd_to_bg_w_ratio, bar_bg_w, quit_threshold)
-            space.remove(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
-            space.add(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
+            paddle.player_b_score_losing(bar_var_w, bar_midpoint, pad_spd_to_bg_w_ratio, bar_bg_w, quit_threshold, space)
 
         if  bar_var_w<bar_midpoint: #if bar below 50%(player b winning)
-            paddle.player_b_score_winning(bar_var_w, bar_midpoint, pad_spd_to_bg_w_ratio, quit_threshold)
-            space.remove(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
-            space.add(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
-        print("a = ", paddle.paddle_l_scalefactor_a)
-        print("b = ", paddle.paddle_l_scalefactor_b)
+            paddle.player_b_score_winning(bar_var_w, bar_midpoint, pad_spd_to_bg_w_ratio, quit_threshold, space)
+          
+  
             
 
     if collision_type == "r_wall":
@@ -184,15 +180,11 @@ def begin(a, s, data):
         data["player_a_score"] += score_increment
 
         if (bar_var_w>bar_midpoint): #if bar above 50%(player a winning)
-            paddle.player_a_score_winning(bar_var_w, bar_midpoint, pad_spd_to_bg_w_ratio, bar_bg_w, quit_threshold)
-            space.remove(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
-            space.add(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
-
-
+            paddle.player_a_score_winning(bar_var_w, bar_midpoint, pad_spd_to_bg_w_ratio, bar_bg_w, quit_threshold, space)
+            
         if (bar_var_w<bar_midpoint): #if bar below 50%(player b winning)
-            paddle.player_a_score_losing(bar_var_w, bar_midpoint, pad_spd_to_bg_w_ratio, quit_threshold)
-            space.remove(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
-            space.add(paddle.paddle_shapes["a"], paddle.paddle_shapes["b"])
+            paddle.player_a_score_losing(bar_var_w, bar_midpoint, pad_spd_to_bg_w_ratio, quit_threshold, space)
+            
 
         print("a =", paddle.paddle_l_scalefactor_a)
         print("b =", paddle.paddle_l_scalefactor_b)
